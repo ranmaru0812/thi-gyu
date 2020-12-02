@@ -5,6 +5,7 @@ numpy==1.19.4
 opencv-contrib-python==4.2.0.34
 opencv-python==4.4.0.46
 Pillow==8.0.1
+face_recognition
 pyparsing==2.4.7
 python-dateutil==2.8.1
 six==1.15.0
