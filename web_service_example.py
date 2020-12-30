@@ -17,7 +17,8 @@
 # $ pip3 install flask
 
 import face_recognition
-from flask import Flask, jsonify, request, redirect
+from flask import Flask, jsonify, request, redirect, render_template
+import json
 
 # You can change this to any folder on your system
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -99,12 +100,26 @@ def detect_faces_in_image(file_stream):
         if match_results[0]:
             is_chigyu = True
 
-    # Return the result as json
-    result = {
-        "face_found_in_image": face_found,
-        "is_picture_of_chi-gyu": is_chigyu
-    }
-    return jsonify(result)
+    if is_chigyu:
+        return render_template("out.html")
+    elif face_found:
+        return render_template("out.html")
+    else:
+        return render_template("onemore.html")
+
+"""
+@app.route('/out', methods=["GET", "POST"])
+def out():
+    return render_template("out.html")
+
+@app.route('/onemore', methods=["GET"])
+def onemore():
+    return render_template("onemore.html")
+
+@approute('/rank', methods=["GET", "POST"])
+def rank():
+    return render_template("rank.html")
+"""
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5001, debug=True)
