@@ -1,8 +1,11 @@
 import face_recognition
 from flask import Flask, jsonify, request, redirect, render_template
 import json
+import subprocess
+import os
 
-# You can change this to any folder on your system
+
+# 以下の4つのファイル形式のみ許可する
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
@@ -66,9 +69,9 @@ def detect_faces_in_image(file_stream):
                          0.08108661,  0.05410679]
 
     # アップロードされた画像を読み込む
-    img = face_recognition.load_image_file(file_stream)
+    uploaded_img = face_recognition.load_image_file(file_stream)
     # アップロードされた画像のエンコード
-    unknown_face_encodings = face_recognition.face_encodings(img)
+    unknown_face_encodings = face_recognition.face_encodings(uploaded_img)
 
     face_found = False
     is_chigyu = False
@@ -82,7 +85,11 @@ def detect_faces_in_image(file_stream):
         if match_results:
             is_chigyu = True
 
-    # 顔画像間距離を出したい 
+    # 顔画像間距離を出すぞ
+    face_distance = os.popen("face_recognition --show-distance true ./img/ ./upload/")
+    face_distance = float((face_distance.read()).strip()[-19:])
+    print(face_distance)
+
 
     # チー牛の場合
     if is_chigyu:
