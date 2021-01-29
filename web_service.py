@@ -1,21 +1,3 @@
-# This is a _very simple_ example of a web service that recognizes faces in uploaded images.
-# Upload an image file and it will check if the image contains a picture of Barack Obama.
-# The result is returned as json. For example:
-#
-# $ curl -XPOST -F "file=@obama2.jpg" http://127.0.0.1:5001
-#
-# Returns:
-#
-# {
-#  "face_found_in_image": true,
-#  "is_picture_of_obama": true
-# }
-#
-# This example is based on the Flask file upload example: http://flask.pocoo.org/docs/0.12/patterns/fileuploads/
-
-# NOTE: This example requires flask to be installed! You can install it with pip:
-# $ pip3 install flask
-
 import face_recognition
 from flask import Flask, jsonify, request, redirect, render_template
 import json
@@ -24,7 +6,6 @@ import json
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
-
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -60,7 +41,7 @@ def upload_image():
 
 
 def detect_faces_in_image(file_stream):
-    # Pre-calculated face encoding of Obama generated with face_recognition.face_encodings(img)
+    # 以下はチー牛（元の画像）をの128次元特徴量にエンコードしたもの
     known_face_encoding = [-0.11040579,  0.05424782,  0.15179718,  0.02071334, -0.0657726,  -0.10343515,
                         -0.07530531, -0.1358026,   0.10000467, -0.11897585,  0.16678749, -0.07516095,
                         -0.17811184,  0.02301318, -0.08678365,  0.17069878, -0.06723175, -0.10969639,
@@ -84,42 +65,35 @@ def detect_faces_in_image(file_stream):
                         -0.01623669, -0.00163811, -0.20324866, -0.00926553,  0.03859815, -0.02626697,
                          0.08108661,  0.05410679]
 
-
-    # Load the uploaded image file
+    # アップロードされた画像を読み込む
     img = face_recognition.load_image_file(file_stream)
-    # Get face encodings for any faces in the uploaded image
+    # アップロードされた画像のエンコード
     unknown_face_encodings = face_recognition.face_encodings(img)
 
     face_found = False
     is_chigyu = False
 
+    # 顔が検出できた場合
     if len(unknown_face_encodings) > 0:
         face_found = True
-        # See if the first face in the uploaded image matches the known face of Obama
+        # アップロードされた画像とチー牛がどれくらい（顔画像間距離的に）近いものなのかを判断 -> True or False
         match_results = face_recognition.compare_faces([known_face_encoding], unknown_face_encodings[0])
-        if match_results[0]:
+        # チー牛である場合
+        if match_results:
             is_chigyu = True
 
+    # 顔画像間距離を出したい 
+
+    # チー牛の場合
     if is_chigyu:
         return render_template("out.html")
+    # チー牛でない場合
     elif face_found:
         return render_template("out.html")
+    # 顔すらも検出できない場合
     else:
         return render_template("onemore.html")
 
-"""
-@app.route('/out', methods=["GET", "POST"])
-def out():
-    return render_template("out.html")
-
-@app.route('/onemore', methods=["GET"])
-def onemore():
-    return render_template("onemore.html")
-
-@approute('/rank', methods=["GET", "POST"])
-def rank():
-    return render_template("rank.html")
-"""
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
