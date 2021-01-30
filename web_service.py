@@ -1,8 +1,12 @@
 import face_recognition
 from flask import Flask, jsonify, request, redirect, render_template
 import json
+import subprocess
+import os
+import numpy as np
 
-# You can change this to any folder on your system
+
+# 以下の4つのファイル形式のみ許可する
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
@@ -10,6 +14,22 @@ app = Flask(__name__)
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def sigmoid(x):
+  return 1.0 / (1.0 + np.exp(-x))
+
+def calc_face_distance():
+    # 顔画像間距離を出すぞ
+    face_distance = os.popen("face_recognition --show-distance true ./img/ ./upload/")
+    face_distance = float((face_distance.read()).strip()[-19:])
+    face_distance = 1- face_distance
+
+    # TODO: チー牛度をいい感じに出力する計算式を書く
+    face_distance = sigmoid(face_distance)
+
+    face_distance *= 100
+    face_distance = int(face_distance)
+    return face_distance
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -66,9 +86,9 @@ def detect_faces_in_image(file_stream):
                          0.08108661,  0.05410679]
 
     # アップロードされた画像を読み込む
-    img = face_recognition.load_image_file(file_stream)
+    uploaded_img = face_recognition.load_image_file(file_stream)
     # アップロードされた画像のエンコード
-    unknown_face_encodings = face_recognition.face_encodings(img)
+    unknown_face_encodings = face_recognition.face_encodings(uploaded_img)
 
     face_found = False
     is_chigyu = False
@@ -77,23 +97,20 @@ def detect_faces_in_image(file_stream):
     if len(unknown_face_encodings) > 0:
         face_found = True
         # アップロードされた画像とチー牛がどれくらい（顔画像間距離的に）近いものなのかを判断 -> True or False
-        match_results = face_recognition.compare_faces([known_face_encoding], unknown_face_encodings[0])
+        #match_results = face_recognition.compare_faces([known_face_encoding], unknown_face_encodings[0])
+        
         # チー牛である場合
-        if match_results:
-            is_chigyu = True
+        #if match_results:
+            #is_chigyu = True
 
-    # 顔画像間距離を出したい 
 
-    # チー牛の場合
-    if is_chigyu:
-        return render_template("out.html")
-    # チー牛でない場合
-    elif face_found:
-        return render_template("out.html")
-    # 顔すらも検出できない場合
-    else:
+    face_distance = calc_face_distance()
+    # 顔すら検出できない場合
+    if not face_found:
         return render_template("onemore.html")
-
+    # チー牛である場合
+    else:
+        return render_template("output.html", face_distance=face_distance)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)
